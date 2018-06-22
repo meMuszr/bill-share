@@ -1,0 +1,7 @@
+FOR EACH RECEIPT THEY ARE ASSOCIATED WITH -
+				IF OWNER OF RECEIPT - Ignore addition
+				ELSE - Take receipt total divided by number of receiptients and assign with receipt owner
+[TENANTID] [RECEIPTOWNER] [AMOUNT]
+
+SELECT RT.TenantId FROM ReceiptTenant RT INNER JOIN Receipt ON RT.ReceiptId = R.Id AND R.Owner R.Date BETWEEN @TO AND @FROM
+
