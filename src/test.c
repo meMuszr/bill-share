@@ -9,6 +9,10 @@ void iterator(void *ptr, size_t size_of_elements, size_t number_of_elements)
 		printf("%d\n", *((int *)ptr));
 	}
 }
+void remove_new_line(char *str) {
+	while(str && *str != '\n') str++;
+	*str = '\0';
+}
 int main(void)
 {
 	unsigned char type;
@@ -20,31 +24,90 @@ int main(void)
 			 "0: new unit\n"
 			 "1: new tenant\n"
 			 "2: get units\n"
-			 "3: get tenants\n");
-		scanf("%hhu", &type);
+			 "3: get tenants\n"
+			 "4: get reciepts\n"
+			 "5: new reciept\n"
+			 "6: calculate apartment monthly costs\n");
+
+		if (fgets(string_input_buffer, sizeof(string_input_buffer), stdin) != NULL)
+		{
+			sscanf(string_input_buffer, "%hhu", &type);
+		}
 		switch (type)
 		{
 		case 0:
+		{
 			puts("New unit address: ");
-			scanf("%256s\n", string_input_buffer);
-			insert_unit(string_input_buffer);
-			break;
+			if (fgets(string_input_buffer, sizeof(string_input_buffer), stdin) != NULL)
+			{
+				remove_new_line(string_input_buffer);
+				insert_unit(string_input_buffer);
+			}
+		}
+		break;
+		case 1:
+		{
+			puts("New tenant: ");
+			if (fgets(string_input_buffer, sizeof(string_input_buffer), stdin) != NULL)
+			{
+				char tenant_name[249];
+				//reuse type for unit id
+				sscanf(string_input_buffer, "%hhu %254c", &type, tenant_name);
+				remove_new_line(tenant_name);
+				insert_tenant(type,tenant_name);
+			}
+		}
+		break;
 		case 2:
 		{
 			struct unit result_row = {};
 			struct sqlite3_stmt *stmt = NULL;
 			struct unit results_buffer[100];
 			int i = 0;
-			while ((stmt = get_units(&stmt,&result_row)) != NULL)
+			while ((stmt = get_units(&stmt, &result_row)) != NULL)
 			{
 				results_buffer[i++] = result_row;
+				printf("%u %s\n", result_row.id, result_row.name);
 			}
-			struct unit results[i];
-			memcpy(results,results_buffer,sizeof(struct unit) * i);
-				printf("id: %u, name: %s\n", result_row.id, result_row.name);
+		}
+		break;
+		case 3:
+		{
+			struct tenant result_row = {};
+			struct sqlite3_stmt *stmt = NULL;
+			struct tenant results_buffer[100];
+			int i = 0;
+			while((stmt = get_tenants(&stmt,&result_row)) != NULL) {
+				results_buffer[i++] = result_row;
+				printf("%u %u %s\n",result_row.id,result_row.unit_id,result_row.name);
+			}
+		}
+		break;
+		case 4:
+		{
+		}
+		break;
+		case 5:
+		{
+			puts("New reciept: ");
+			if (fgets(string_input_buffer, sizeof(string_input_buffer), stdin) != NULL)
+			{
+				char receipt_name[249];
+				unsigned int cost;
+				time_t date;
+				//reuse type for tenant id
+				sscanf(string_input_buffer, "%hhu %u %lu %254c", &type, &cost, &date, receipt_name);
+				remove_new_line(receipt_name);
+				insert_receipt(receipt_name,type,cost,date);
+			}
+		}
+		break;
+		default: {
+			close();
+			return 0;
 		}
 		}
 	}
-	close();
-	return 0;
+		close();
+		return 0;
 }
