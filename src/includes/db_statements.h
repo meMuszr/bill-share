@@ -14,3 +14,4 @@ const char *SELECT_TENANTS_QUERY = "SELECT * FROM Tenant";
 const char *SELECT_RECEIPTS_QUERY = "SELECT * FROM Receipt";
 const char *SELECT_RECEIPTS_BY_TENANT_QUERY = "SELECT *  FROM Receipt WHERE TenantId = @TENANTID";
 const char *SELECT_MONTHLY_RECEIPTS_PER_TENANT = "SELECT * FROM Receipt WHERE Date BETWEEN @FROM AND @TO WHERE TenantId = @TENANTID;";
+const char *SELECT_RECEIPTS_SPLIT_BY_TENANTS = "SELECT ReceiptId, Name, Buyer, TenantId Debtor, Cost Debt, Date FROM(SELECT RT.*, P.TenantId Buyer, P.Name, P.Cost Total, P.Date, P.PerCost Cost FROM ReceiptTenant RT JOIN (SELECT R.*, (R.Cost / COUNT(RT.TenantId)) [PerCost] FROM ReceiptTenant RT JOIN Receipt R on RT.ReceiptId = R.Id GROUP BY RT.ReceiptId) P ON RT.ReceiptId = P.Id) WHERE Buyer != Debtor AND (BUYER = @TENANTID OR Debtor = @TENANTID) ORDER BY ReceiptId ASC;"
